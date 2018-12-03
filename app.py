@@ -53,7 +53,7 @@ def add():
             })
         print(affected_id)
         if affected_id:
-            return redirect(url_for(('index')))
+            return redirect(url_for('index'))
 
 @app.route('/finish')
 def finish():
