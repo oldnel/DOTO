@@ -5,8 +5,13 @@ from flask import Flask,render_template,url_for,redirect,request
 
 app = Flask(__name__)
 ##数据库实例
-db=pymongo.MongoClient('127.0.0.1',127017)
-db.todo
+connect=pymongo.MongoClient('127.0.0.1',27017)
+db = connect.todo
+
+#client= pymogo.MongoClient()
+#todo =client['todo']
+#content = todo['content']
+#content.insert({})
 #mongo TODO文档结构
 class Todo(object):
     """
@@ -23,18 +28,32 @@ class Todo(object):
         }
 
 @app.route('/')
-def hello_world():
-    return render_template('index.html')
+def index():
+    return redirect(url_for('get'))
 
 @app.route('/get')
 def get():
     """展示TODO列表"""
-    pass
+    todo_list = db.todo.find({})
+    print(todo_list)
+    return render_template('index.html',todo_list=todo_list)
 
-@app.route('/add')
+@app.route('/add',methods=['POST'])
 def add():
     """添加一条todo"""
-    pass
+    form = request.form
+    content = form['content']
+    print(content)
+    if content:
+        affected_id = db.todo.insert_one({
+                "content":content,
+                "create_time":datetime.now(),
+                "status":0,
+                "finish_time":None
+            })
+        print(affected_id)
+        if affected_id:
+            return redirect(url_for(('index')))
 
 @app.route('/finish')
 def finish():
@@ -44,7 +63,14 @@ def finish():
 @app.route('/delete')
 def delete():
     """删除无用的todo"""
-    pass
+    args = request.args
+    content = args['content']
+    print(content)
+    affect_id = db.todo.remove({
+        'content':content
+    })
+    print(affect_id)
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run()
